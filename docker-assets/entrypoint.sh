@@ -3,7 +3,12 @@
 set -e
 
 # source ROS
-source /opt/ros/${ROS_DISTRO}/setup.bash
+source /opt/ros/${ROS_DISTRO}/setup.bash --extend
+
+# source third-party script (if any)
+if [ -n "${SOURCE_BASH}" ]; then
+    source ${SOURCE_BASH} --extend
+fi
 
 # set ROS master URI
 export ROS_MASTER_URI="http://${ROS_MASTER_HOST}:11311"
