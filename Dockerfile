@@ -21,6 +21,9 @@ RUN apt update && apt install -y \
     # clean the apt cache
     && rm -rf /var/lib/apt/lists/*
 
+# source ROS
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /etc/bash.bashrc
+
 # copy and set entrypoint
-COPY docker-assets/entrypoint.sh /entrypoint.sh
+COPY assets/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

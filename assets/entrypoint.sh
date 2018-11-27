@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# exit immediately if a command exits with a non-zero status
 set -e
 
 # make the docker container discoverable on the network
@@ -7,6 +8,11 @@ echo "`hostname`    127.0.0.1" >> /etc/hosts
 
 # source ROS
 source /opt/ros/${ROS_DISTRO}/setup.bash --extend
+
+# auto-source third-party script (if any)
+if [ -f /code/devel/setup.bash ]; then
+    source /code/devel/setup.bash --extend
+fi
 
 # source third-party script (if any)
 if [ -n "${SOURCE_BASH}" ]; then
