@@ -4,7 +4,7 @@
 set -e
 
 # make the docker container discoverable on the network
-echo "`hostname`    127.0.0.1" >> /etc/hosts
+echo "127.0.0.1    `hostname`" >> /etc/hosts
 
 # source ROS
 source /opt/ros/${ROS_DISTRO}/setup.bash --extend
