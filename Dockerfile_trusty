@@ -1,4 +1,4 @@
-FROM afdaniele/libbot2:trusty
+FROM ripl/libbot2:trusty
 
 # set ROS codename
 ENV ROS_DISTRO "indigo"

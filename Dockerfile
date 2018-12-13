@@ -1,4 +1,4 @@
-FROM afdaniele/libbot2:latest
+FROM ripl/libbot2:latest
 
 # set Ubuntu codename
 ENV UBUNTU_DISTRIB_CODENAME "xenial"
