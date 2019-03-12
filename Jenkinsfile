@@ -2,11 +2,11 @@ pipeline {
   agent any
   environment {
     // Tag: latest
-    BASE_IMAGE_LATEST = "ripl/libbot:latest"
+    BASE_IMAGE_LATEST = "ripl/libbot2:latest"
     BUILD_IMAGE_LATEST = "ripl/libbot2-ros:latest"
 
     // Tag: trusty
-    BASE_IMAGE_TRUSTY = "ripl/libbot:trusty"
+    BASE_IMAGE_TRUSTY = "ripl/libbot2:trusty"
     BUILD_IMAGE_TRUSTY = "ripl/libbot2-ros:trusty"
   }
   stages {
