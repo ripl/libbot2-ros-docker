@@ -1,4 +1,5 @@
 # LIST YOUR APT PACKAGES HERE
 
+libnss-mdns
 ros-${ROS_DISTRO}-desktop
 
