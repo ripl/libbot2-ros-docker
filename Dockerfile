@@ -10,7 +10,7 @@ ARG MAINTAINER
 ARG BASE_REGISTRY=docker.io
 ARG BASE_ORGANIZATION=ripl
 ARG BASE_REPOSITORY=libbot2-docker
-ARG BASE_TAG=latest
+ARG BASE_TAG=cpk
 
 # define base image
 FROM ${BASE_REGISTRY}/${BASE_ORGANIZATION}/${BASE_REPOSITORY}:${BASE_TAG}-${ARCH} as BASE
@@ -21,6 +21,7 @@ ARG NAME
 ARG ORGANIZATION
 ARG DESCRIPTION
 ARG MAINTAINER
+ARG ROS_DISTRO=noetic
 # - base project
 ARG BASE_REGISTRY
 ARG BASE_ORGANIZATION
@@ -48,13 +49,11 @@ ENV \
 
 # Install gnupg required for apt-key (not in base image since Focal)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gnupg \
+    && apt-get install -y --no-install-recommends gnupg curl \
     && rm -rf /var/lib/apt/lists/*
 
-# RUN apt-key adv \
-#     --keyserver hkp://keyserver.ubuntu.com:80 \
-#     --recv-keys F42ED6FBAB17C654
-# RUN echo "deb http://packages.ros.org/ros/ubuntu ${BASE_TAG} main" >> /etc/apt/sources.list
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 
 # install apt dependencies
 COPY ./dependencies-apt.txt "${PROJECT_PATH}/"
@@ -94,26 +93,3 @@ LABEL \
     cpk.label.project.${ORGANIZATION}.${NAME}.maintainer="${MAINTAINER}"
 # <== Do not change the code above this line
 # <==================================================
-
-# set Ubuntu codename
-ENV UBUNTU_DISTRIB_CODENAME "bionic"
-
-# set ROS codename
-ENV ROS_DISTRO "melodic"
-
-# set default ROS master hostname
-ENV ROS_MASTER_HOST "localhost"
-
-# Setup ROS sources
-RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-# RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $UBUNTU_DISTRIB_CODENAME main" > /etc/apt/sources.list.d/ros-latest.list'
-
-# Setup ROS keys
-RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
-# RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-
-# update apt lists and install system libraries, then clean the apt cache
-RUN apt update && apt install -y \
-    ros-$ROS_DISTRO-desktop \
-    # clean the apt cache
-    && rm -rf /var/lib/apt/lists/*
