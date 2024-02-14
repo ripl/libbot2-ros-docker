@@ -19,6 +19,8 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
 
 RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 # update apt lists and install system libraries, then clean the apt cache
 RUN apt update && apt install -y \
     ros-$ROS_DISTRO-desktop \
