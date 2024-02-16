@@ -156,19 +156,15 @@ RUN apt update && apt install -y \
     # clean the apt cache
     && rm -rf /var/lib/apt/lists/*
 
+
+# source ROS
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /etc/bash.bashrc
+
+# copy and set entrypoint
+COPY assets/entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
 ####### END: ROS INSTALLATION #######
 
-
-# make binary files available
-ENV PATH=$WORKING_DIR/software/build/bin:$PATH
-
-# make Python packages available
-ENV PYTHON_PATH=$WORKING_DIR/software/build/lib/python2.7/dist-packages:$PYTHON_PATH
-
-# make libraries available
-ENV LD_LIBRARY_PATH=$WORKING_DIR/software/build/lib:$LD_LIBRARY_PATH
-
-# set WORKDIR
-WORKDIR ${WORKING_DIR}
 
 
