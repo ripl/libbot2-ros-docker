@@ -1,6 +1,6 @@
 # Parameters
-ARG REPO_NAME="husky"
-ARG DESCRIPTION="Contains a set of libraries and executables for the Husky AGV"
+ARG REPO_NAME="libbot2-ros"
+ARG DESCRIPTION="Container with LCM, libbot, and ROS for Ubuntu 16.04"
 ARG MAINTAINER="Matthew Walter (mwalter@ttic.edu)"
 
 # Base image
@@ -101,6 +101,8 @@ RUN apt update \
     apt-transport-https \
     libsdl1.2-dev \
     libusb-1.0-0-dev \
+    libgtk2.0-dev \
+    libgtkgl2.0-dev \
   && rm -rf /var/lib/apt/lists/*
 
 # libbot2 requires cmake >=3.10, which is not installed by default on 16.04.
