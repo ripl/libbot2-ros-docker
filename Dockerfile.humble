@@ -1,0 +1,50 @@
+FROM ripl/libbot2:22.04
+
+# set Ubuntu codename
+# ENV UBUNTU_DISTRIB_CODENAME "focal"
+
+# set ROS codename
+ENV ROS_DISTRO "humble"
+
+# set default ROS master hostname
+ENV ROS_MASTER_HOST "localhost"
+
+# Make sure locale supports UTF-8
+RUN apt-get update && apt-get install locales && \
+    locale-gen en_US en_US.UTF-8 && \
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+
+# update apt lists and install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    lsb-release \
+    software-properties-common
+
+RUN add-apt-repository universe
+
+# add the ROS 2 GPG key and add repository to sources list
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# From ROS documentation:
+# Due to early updates in Ubuntu 22.04 it is important that systemd and
+# udev-related packages are updated before installing ROS 2. 
+# The installation of ROS 2’s dependencies on a freshly installed system 
+# without upgrading can trigger the removal of critical system packages.
+RUN apt-get upgrade -y
+
+# update apt lists and install system libraries, then clean the apt cache
+RUN apt-get update  && apt-get install -y \
+    ros-$ROS_DISTRO-desktop \
+    # clean the apt cache
+    && rm -rf /var/lib/apt/lists/*
+
+# source ROS
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /etc/bash.bashrc
+
+# copy and set entrypoint
+COPY assets/entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
