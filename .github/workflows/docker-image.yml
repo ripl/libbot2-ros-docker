@@ -31,8 +31,8 @@ jobs:
           context: .
           platforms: linux/arm64/v8,linux/amd64
           push: true
+          file: Dockerfile.${{ env.ROS_VERSION_PREVIOUS }}
           tags: ripl/libbot2-ros:${{ env.ROS_VERSION_PREVIOUS }}
-          build-args: ROS_VERSION=${{ env.ROS_VERSION_PREVIOUS }}
       - name: Build and push latest
         uses: docker/build-push-action@v5
         with:
@@ -40,4 +40,4 @@ jobs:
           platforms: linux/arm64/v8,linux/amd64
           push: true
           tags: ripl/libbot2-ros:latest, ripl/libbot2-ros:${{ env.ROS_VERSION_LATEST }}
-          build-args: ROS_VERSION=${{ env.ROS_VERSION_LATEST }}
+          file: Dockerfile.${{ env.ROS_VERSION_LATEST }}
