@@ -25,6 +25,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push kinetic
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/arm64/v8,linux/amd64
+          push: true
+          tags: ripl/libbot2-ros:kinetic
+          file: Dockerfile.kinetic
       - name: Build and push previous
         uses: docker/build-push-action@v5
         with:
