@@ -1,0 +1,174 @@
+# Parameters
+ARG REPO_NAME="libbot2-ros"
+ARG DESCRIPTION="Container with LCM, libbot, and ROS for Ubuntu 16.04"
+ARG MAINTAINER="Matthew Walter (mwalter@ttic.edu)"
+
+# Base image
+FROM ubuntu:16.04
+
+# Ubuntu version
+ARG DEBIAN_FRONTEND=noninteractive
+
+####### BEGIN: LCM INSTALLATION #######
+# set default LCM_DEFAULT_URL
+ENV LCM_IP "239.255.76.67"
+ENV LCM_PORT "7667"
+ENV LCM_TTL "1"
+ENV LCM_DEFAULT_URL "udpm://$LCM_IP:$LCM_PORT?ttl=$LCM_TTL"
+RUN echo "export LCM_DEFAULT_URL=udpm://\$LCM_IP:\$LCM_PORT?ttl=\$LCM_TTL" >> /etc/bash.bashrc
+
+# set default installation dir
+ENV LCM_INSTALL_DIR "/usr/local/lib"
+
+# update apt lists and install system libraries, then clean the apt cache
+RUN apt-get update && apt-get install -y \
+    wget \
+    cmake \
+    g++ \
+    libglib2.0-dev \
+    python-dev \
+    unzip \
+    openjdk-8-jdk \
+    locales \
+    # clean the apt cache
+    && rm -rf /var/lib/apt/lists/*
+
+# Call locale-gen
+RUN locale-gen en_US.UTF-8
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# set the Kernel UDP buffer size to 10MB
+RUN echo 'net.core.rmem_max=10485760' >> /etc/sysctl.conf
+RUN echo 'net.core.rmem_default=10485760' >> /etc/sysctl.conf
+
+# set default LCM_VERSION
+ENV LCM_VERSION '1.4.0'
+
+# install LCM
+RUN \
+# pull lcm
+    # Zip files are prepended with 'v'
+    wget https://github.com/lcm-proj/lcm/archive/refs/tags/v$LCM_VERSION.zip && \
+# open up the source
+    unzip v$LCM_VERSION.zip && \
+# configure, build, install, and configure LCM
+    cd lcm-$LCM_VERSION && mkdir build && cd build && cmake ../ && make install && ldconfig && \
+# delete source code
+    cd / && rm -rf v$LCM_VERSION.zip lcm-$LCM_VERSION
+
+# configure pkgconfig to find LCM
+ENV PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$LCM_INSTALL_DIR/pkgconfig
+####### END: LCM INSTALLATION #######
+
+
+
+####### BEGIN: LIBBOT INSTALLATION #######
+
+# arguments
+ARG INSTALL_DIR=/usr/local
+
+# environment variables
+ENV LIBBOT2_INSTALL_DIR $INSTALL_DIR
+
+# install dependencies
+RUN apt update \
+  && apt install -y \
+    #sudo \
+    autoconf \
+    build-essential \
+    ca-certificates \
+    default-jdk \
+    doxygen \
+    file \
+    freeglut3-dev \
+    git \
+    gnupg \
+    libglib2.0-dev \
+    #libgtk-3-dev \
+    libjpeg8-dev \
+    libpng-dev \
+    libxmu-dev \
+    pkg-config \
+    python-dev \
+    python-gi \
+    python-numpy \
+    python-scipy \
+    wget \
+    zlib1g-dev \
+    apt-transport-https \
+    libsdl1.2-dev \
+    libusb-1.0-0-dev \
+    libgtk2.0-dev \
+    libgtkgl2.0-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+# libbot2 requires cmake >=3.10, which is not installed by default on 16.04.
+# The following updates the version of cmake
+# Note that this does not work on arm64
+RUN apt-get remove -y cmake && \
+    wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc   | gpg --dearmor > /etc/apt/trusted.gpg.d/kitware.gpg && \
+    echo 'deb https://apt.kitware.com/ubuntu/ xenial main' \
+    > /etc/apt/sources.list.d/kitware.list && \
+    apt-get update && \
+    apt-get install -y cmake && \
+    rm -rf /var/lib/apt/lists/*
+
+# build libbot2 from source
+RUN mkdir -p /tmp/libbot2 && \
+  cd /tmp/libbot2 && \
+  # download libbot2 that requires CMAKE >= 3.5
+  wget https://github.com/ripl/libbot2/archive/16242507605038c1979f2ef274d5c17b9b07f417.zip && \
+  unzip 16242507605038c1979f2ef274d5c17b9b07f417.zip && \
+  mv libbot2-16242507605038c1979f2ef274d5c17b9b07f417 libbot2-code && \
+  #wget https://github.com/ripl-ttic/libbot2/archive/master.tar.gz && \
+  #tar -zxvf master.tar.gz && \
+  #cd libbot2-master && \
+  #cd .. && \
+  mkdir libbot2-build && \
+  # build libbot2
+  cd libbot2-build && \
+  #cmake -DCMAKE_INSTALL_PREFIX=$LIBBOT2_INSTALL_DIR ../libbot2-master && \
+  cmake -DCMAKE_INSTALL_PREFIX=$LIBBOT2_INSTALL_DIR ../libbot2-code && \
+  make install && \
+  # remove source code
+  cd / && \
+  rm -rf /tmp/libbot2
+
+###### END: LIBBOT INSTALLATION #######
+
+
+####### BEGIN: ROS INSTALLATION #######
+
+# set ROS codename
+ENV ROS_DISTRO "kinetic"
+
+# set default ROS master hostname
+ENV ROS_MASTER_HOST "localhost"
+
+RUN apt-get update && apt-get install -y curl lsb-release
+
+# Setup ROS sources
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+
+
+# Setup ROS keys
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+
+# update apt lists and install system libraries, then clean the apt cache
+RUN apt update && apt install -y \
+    ros-$ROS_DISTRO-desktop \
+    # clean the apt cache
+    && rm -rf /var/lib/apt/lists/*
+
+
+# source ROS
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /etc/bash.bashrc
+
+# copy and set entrypoint
+COPY assets/entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+####### END: ROS INSTALLATION #######

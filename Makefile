@@ -46,6 +46,9 @@ docker-build:
 	# Build previous
 	docker buildx build --platform linux/arm64/v8,linux/amd64 --tag $(BUILD_IMAGE_PREVIOUS) -f Dockerfile.${ROS_VERSION_PREVIOUS} .
 
+	# Build kinetic
+	docker buildx build --platform linux/arm64/v8,linux/amd64 --tag $(IMAGE):kinetic -f Dockerfile.kinetic .
+
 
 release: build push	## builds a new version of your container image(s), and pushes it/them to the registry
 
@@ -59,11 +62,14 @@ do-push:
 	# Push previous
 	docker buildx build --platform linux/arm64/v8,linux/amd64 --push --tag $(BUILD_IMAGE_PREVIOUS) -f Dockerfile.${ROS_VERSION_PREVIOUS} .
 
+	# Push kinetic
+	docker buildx build --platform linux/arm64/v8,linux/amd64 --push --tag $(IMAGE):kinetic -f Dockerfile.kinetic .
 
 cleanup: ## Remove images pulled/generated as part of the build process
 	docker rmi $(BUILD_IMAGE_LATEST)
 	docker rmi $(IMAGE):latest
 	docker rmi $(BUILD_IMAGE_PREVIOUS)
+	docker rmi $(IMAGE):kinetic
 	#docker rmi $(BASE_IMAGE_ENVIRONMENT_LATEST)
 	#docker rmi $(BASE_IMAGE_ENVIRONMENT_PREVIOUS)
 
