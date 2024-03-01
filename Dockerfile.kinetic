@@ -71,7 +71,7 @@ ENV PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$LCM_INSTALL_DIR/pkgconfig
 ARG INSTALL_DIR=/usr/local
 
 # environment variables
-ENV LIBBOT2_INSTALL_DIR $INSTALL_DIR
+ENV LIBBOT2_INSTALL_DIR=$INSTALL_DIR
 
 # install dependencies
 RUN apt update \
@@ -108,13 +108,13 @@ RUN apt update \
 # libbot2 requires cmake >=3.10, which is not installed by default on 16.04.
 # The following updates the version of cmake
 # Note that this does not work on arm64
-RUN apt-get remove -y cmake && \
-    wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc   | gpg --dearmor > /etc/apt/trusted.gpg.d/kitware.gpg && \
-    echo 'deb https://apt.kitware.com/ubuntu/ xenial main' \
-    > /etc/apt/sources.list.d/kitware.list && \
-    apt-get update && \
-    apt-get install -y cmake && \
-    rm -rf /var/lib/apt/lists/*
+# RUN apt-get remove -y cmake && \
+#     wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc   | gpg --dearmor > /etc/apt/trusted.gpg.d/kitware.gpg && \
+#     echo 'deb https://apt.kitware.com/ubuntu/ xenial main' \
+#     > /etc/apt/sources.list.d/kitware.list && \
+#     apt-get update && \
+#     apt-get install -y cmake && \
+#     rm -rf /var/lib/apt/lists/*
 
 # build libbot2 from source
 RUN mkdir -p /tmp/libbot2 && \
@@ -123,10 +123,13 @@ RUN mkdir -p /tmp/libbot2 && \
   wget https://github.com/ripl/libbot2/archive/16242507605038c1979f2ef274d5c17b9b07f417.zip && \
   unzip 16242507605038c1979f2ef274d5c17b9b07f417.zip && \
   mv libbot2-16242507605038c1979f2ef274d5c17b9b07f417 libbot2-code && \
-  #wget https://github.com/ripl-ttic/libbot2/archive/master.tar.gz && \
-  #tar -zxvf master.tar.gz && \
-  #cd libbot2-master && \
-  #cd .. && \
+  # This version of libbot creates a "build" directory in libbot2-code
+  # and sets CMAKE_INSTALL_PREFIX to that directory rather than
+  # /usr/local. Comment out the lines that cause this
+  cd libbot2-code && \
+  sed -i '24 s/./#&/' CMakeLists.txt && \
+  sed -i '25 s/./#&/' CMakeLists.txt && \
+  cd .. && \
   mkdir libbot2-build && \
   # build libbot2
   cd libbot2-build && \
